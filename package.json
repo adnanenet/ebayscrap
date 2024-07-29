@@ -1,0 +1,21 @@
+{
+  "name": "moviesdata",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "ebay": "node ./node_modules/mocha/bin/mocha --timeout=25000 Tests/ebay.js",
+    "catigo": "node ./node_modules/mocha/bin/mocha --timeout=25000 Tests/catigo.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "chai": "^5.0.3",
+    "mocha": "^10.2.0",
+    "node-fetch": "^2.7.0",
+    "puppeteer": "^21.11.0",
+    "puppeteer-extra": "^3.3.6",
+    "puppeteer-extra-plugin-adblocker": "^2.13.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2"
+  }
+}
