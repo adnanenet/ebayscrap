@@ -18,40 +18,66 @@ const fs = require('fs');
         const hrefs = JSON.parse(data);
 
         if (hrefs.length > 0) {
-            const firstLink = hrefs[0];
-            console.log('Navigating to the first link:', firstLink);
+            for (const initialLink of hrefs) {
+                console.log('Navigating to:', initialLink);
 
-            // Navigate to the first link
-            await page.goto(firstLink, { waitUntil: 'networkidle2' });
-            console.log('Navigated to the first link');
+                // Navigate to the first page
+                await page.goto(initialLink, { waitUntil: 'networkidle2' });
+                console.log('Navigated to the page');
 
-            // Extract and filter list items
-            const listItems = await page.evaluate(() => {
-                const items = [];
-                // Select the list within the specified class
-                const ulElement = document.querySelector('ul.b-list__items_nofooter');
-                if (ulElement) {
-                    // Get all list items within the ul
-                    const lis = ulElement.querySelectorAll('li.s-item.s-item--large');
-                    lis.forEach(li => {
-                        // Log the li content
-                        console.log('Raw li content:', li.outerHTML);
+                let hasNextPage = true;
 
-                        // Check if the item is not hidden
-                        const style = window.getComputedStyle(li);
-                        if (style.display !== 'none') {
-                            items.push(li.innerText.trim());
+                while (hasNextPage) {
+                    // Extract the desired information
+                    const itemsData = await page.evaluate(() => {
+                        const items = [];
+                        const ulElement = document.querySelector('ul.b-list__items_nofooter');
+                        if (ulElement) {
+                            const lis = ulElement.querySelectorAll('li.s-item.s-item--large');
+                            lis.forEach(li => {
+                                const linkElement = li.querySelector('a.s-item__link');
+                                const imgElement = li.querySelector('img.s-item__image-img');
+                                const titleElement = li.querySelector('h3.s-item__title');
+                                const priceElement = li.querySelector('span.s-item__price');
+                                const soldElement = li.querySelector('span.s-item__hotness');
+
+                                const style = window.getComputedStyle(li);
+                                if (style.display !== 'none') {
+                                    items.push({
+                                        href: linkElement ? linkElement.href : null,
+                                        imgSrc: imgElement ? imgElement.src : null,
+                                        title: titleElement ? titleElement.innerText.trim() : null,
+                                        price: priceElement ? priceElement.innerText.trim() : null,
+                                        sold: soldElement ? soldElement.innerText.trim() : null
+                                    });
+                                }
+                            });
                         }
+                        return items;
                     });
+
+                    console.log('Extracted items data:', itemsData);
+
+                    // Save the data to a file or append to existing data
+                    fs.appendFileSync('items_data.json', JSON.stringify(itemsData, null, 2));
+
+                    // Click the "Next" page link
+                    const nextPageSelector = 'a.pagination__next.icon-link';
+                    const nextPageExists = await page.evaluate(selector => {
+                        return !!document.querySelector(selector);
+                    }, nextPageSelector);
+
+                    if (nextPageExists) {
+                        console.log('Clicking the "Next" page link');
+                        await Promise.all([
+                            page.waitForNavigation({ waitUntil: 'networkidle2' }),
+                            page.click(nextPageSelector)
+                        ]);
+                    } else {
+                        hasNextPage = false; // No more pages
+                    }
                 }
-                return items;
-            });
-
-            console.log('Filtered list items:', listItems);
-
-            // Optionally: Save the list items to a file or perform further actions
-            // fs.writeFileSync('list_items.json', JSON.stringify(listItems, null, 2));
-
+            }
         } else {
             console.log('No links found in extracted_links.json.');
         }
