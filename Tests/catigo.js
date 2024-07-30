@@ -48,7 +48,6 @@ const getExistingData = () => {
                             const lis = ulElement.querySelectorAll('li.s-item.s-item--large');
                             lis.forEach(li => {
                                 const linkElement = li.querySelector('a.s-item__link');
-                                const imgElement = li.querySelector('img.s-item__image-img');
                                 const titleElement = li.querySelector('h3.s-item__title');
                                 const priceElement = li.querySelector('span.s-item__price');
                                 const soldElement = li.querySelector('span.s-item__hotness');
@@ -58,7 +57,6 @@ const getExistingData = () => {
                                     const itemId = linkElement ? linkElement.href : Date.now(); // Unique key
                                     items[itemId] = {
                                         href: linkElement ? linkElement.href : null,
-                                        imgSrc: imgElement ? imgElement.src : null,
                                         title: titleElement ? titleElement.innerText.trim() : null,
                                         price: priceElement ? priceElement.innerText.trim() : null,
                                         sold: soldElement ? soldElement.innerText.trim() : null
